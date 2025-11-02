@@ -221,6 +221,10 @@ const FlowCanvas = () => {
     setNodes((nds) =>
       nds.map((node) => ({
         ...node,
+        data: {
+          ...node.data,
+          isActive: highlightedNode === node.id,
+        },
         style: {
           ...node.style,
           opacity: highlightedNode === node.id ? 1 : highlightedNode ? 0.4 : 1,

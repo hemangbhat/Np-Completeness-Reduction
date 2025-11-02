@@ -6,6 +6,7 @@ export type ProblemNodeData = {
   title: string
   subtitle: string
   summary: string
+  isActive?: boolean
 }
 
 // Transition curve reused for entrance/hover animations to keep the flow cohesive.
@@ -84,6 +85,37 @@ const ProblemNodeComponent = ({ data }: NodeProps<ProblemNodeData>) => {
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />
       </div>
+
+      {/* Active loader - shown when node is focused during animation */}
+      {data.isActive && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="absolute -bottom-12 left-1/2 -translate-x-1/2"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex gap-1">
+              <motion.div
+                className="h-2 w-2 rounded-full bg-cyan-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+              />
+              <motion.div
+                className="h-2 w-2 rounded-full bg-cyan-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+              />
+              <motion.div
+                className="h-2 w-2 rounded-full bg-cyan-500"
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+              />
+            </div>
+            <span className="text-xs font-medium text-cyan-400">Processing...</span>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
