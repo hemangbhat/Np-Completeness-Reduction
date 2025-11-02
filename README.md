@@ -10,7 +10,7 @@
 
 **An educational, interactive visualization tool that demonstrates how NP-Complete problems reduce into each other.**
 
-[Live Demo](#) • [Features](#-features) • [Installation](#-installation) • [Usage](#-usage)
+[Live Demo](https://npcompletenessreduction.netlify.app/) • [Features](#-features) • [Installation](#-installation) • [Usage](#-usage)
 
 </div>
 
