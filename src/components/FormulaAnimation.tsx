@@ -123,6 +123,7 @@ const FormulaAnimation = () => {
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [customFormula, setCustomFormula] = useState('(A ∨ B) ∧ (¬C ∨ D ∨ E ∨ F)')
   const [showGadgetGraph, setShowGadgetGraph] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1) // Default 1x speed
   const autoPlayInterval = useRef<number | null>(null)
 
   const transformationSteps = transformationStepsMap[selectedPath]
@@ -140,7 +141,7 @@ const FormulaAnimation = () => {
             return prev
           }
         })
-      }, 2000) // 2 seconds per step
+      }, 2000 / playbackSpeed) // Adjust interval based on playback speed
     }
 
     return () => {
@@ -148,7 +149,7 @@ const FormulaAnimation = () => {
         clearInterval(autoPlayInterval.current)
       }
     }
-  }, [isAutoPlaying])
+  }, [isAutoPlaying, playbackSpeed])
 
   const handleNext = () => {
     if (currentStep < transformationSteps.length - 1) {
@@ -338,6 +339,23 @@ Method used: ${pathDescriptions[selectedPath]}
           {isAutoPlaying ? '⏸ Pause' : '▶ Auto-play'}
         </button>
 
+        {/* Speed Control */}
+        <select
+          value={playbackSpeed}
+          onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+          className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-750 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+          title="Playback Speed"
+        >
+          <option value={0.25}>0.25× Speed</option>
+          <option value={0.5}>0.5× Speed</option>
+          <option value={0.75}>0.75× Speed</option>
+          <option value={1}>1× Speed</option>
+          <option value={1.25}>1.25× Speed</option>
+          <option value={1.5}>1.5× Speed</option>
+          <option value={1.75}>1.75× Speed</option>
+          <option value={2}>2× Speed</option>
+        </select>
+
         <button
           onClick={handleReset}
           disabled={isAutoPlaying}
@@ -427,6 +445,162 @@ Method used: ${pathDescriptions[selectedPath]}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* CLIQUE Graph Visualization */}
+      <div className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-purple-300">
+            🕸️ CLIQUE Graph Construction (Gadget Method)
+          </h4>
+          <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-medium text-purple-300">
+            Visual Example
+          </span>
+        </div>
+
+        <div className="rounded-lg border border-purple-500/20 bg-slate-900/60 p-4">
+          <p className="mb-3 text-xs text-slate-400">
+            Formula: <span className="font-mono text-purple-300">(A ∨ B ∨ ⊤) ∧ (¬C ∨ D ∨ x₁) ∧ (¬x₁ ∨ E ∨ F)</span>
+          </p>
+
+          {/* SVG Graph */}
+          <svg viewBox="0 0 400 300" className="w-full" style={{ maxHeight: '300px' }}>
+            {/* Define gradient for edges */}
+            <defs>
+              <linearGradient id="edgeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style={{ stopColor: '#8b5cf6', stopOpacity: 0.3 }} />
+                <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 0.6 }} />
+              </linearGradient>
+            </defs>
+
+            {/* Edges - connecting compatible vertices from different clauses */}
+            {/* Clause 1 to Clause 2 edges */}
+            <line x1="60" y1="80" x2="200" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="60" y1="80" x2="200" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="60" y1="80" x2="240" y2="220" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="200" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="200" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="240" y2="220" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="200" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="200" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="240" y2="220" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            
+            {/* Clause 2 to Clause 3 edges (note: x₁ and ¬x₁ are contradictory, so no edge between them) */}
+            <line x1="200" y1="80" x2="300" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="200" y1="80" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="200" y1="150" x2="300" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="200" y1="150" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="240" y1="220" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="240" y1="220" x2="380" y2="140" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            
+            {/* Clause 1 to Clause 3 edges */}
+            <line x1="60" y1="80" x2="300" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="60" y1="80" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="60" y1="80" x2="380" y2="140" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="300" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="100" y1="140" x2="380" y2="140" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="300" y2="150" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="340" y2="80" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+            <line x1="140" y1="80" x2="380" y2="140" stroke="url(#edgeGradient)" strokeWidth="1.5" opacity="0.5" />
+
+            {/* Clause 1 vertices: (A ∨ B ∨ ⊤) */}
+            <g>
+              <circle cx="60" cy="80" r="18" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="2" />
+              <text x="60" y="85" textAnchor="middle" fill="#93c5fd" fontSize="12" fontWeight="bold">A</text>
+              <text x="60" y="110" textAnchor="middle" fill="#60a5fa" fontSize="9">C1</text>
+            </g>
+            <g>
+              <circle cx="100" cy="140" r="18" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="2" />
+              <text x="100" y="145" textAnchor="middle" fill="#93c5fd" fontSize="12" fontWeight="bold">B</text>
+              <text x="100" y="170" textAnchor="middle" fill="#60a5fa" fontSize="9">C1</text>
+            </g>
+            <g>
+              <circle cx="140" cy="80" r="18" fill="#3b82f6" fillOpacity="0.3" stroke="#3b82f6" strokeWidth="2" />
+              <text x="140" y="85" textAnchor="middle" fill="#93c5fd" fontSize="12" fontWeight="bold">⊤</text>
+              <text x="140" y="110" textAnchor="middle" fill="#60a5fa" fontSize="9">C1</text>
+            </g>
+
+            {/* Clause 2 vertices: (¬C ∨ D ∨ x₁) */}
+            <g>
+              <circle cx="200" cy="80" r="18" fill="#06b6d4" fillOpacity="0.3" stroke="#06b6d4" strokeWidth="2" />
+              <text x="200" y="85" textAnchor="middle" fill="#67e8f9" fontSize="12" fontWeight="bold">¬C</text>
+              <text x="200" y="110" textAnchor="middle" fill="#22d3ee" fontSize="9">C2</text>
+            </g>
+            <g>
+              <circle cx="200" cy="150" r="18" fill="#06b6d4" fillOpacity="0.3" stroke="#06b6d4" strokeWidth="2" />
+              <text x="200" y="155" textAnchor="middle" fill="#67e8f9" fontSize="12" fontWeight="bold">D</text>
+              <text x="200" y="180" textAnchor="middle" fill="#22d3ee" fontSize="9">C2</text>
+            </g>
+            <g>
+              <circle cx="240" cy="220" r="18" fill="#06b6d4" fillOpacity="0.3" stroke="#06b6d4" strokeWidth="2" />
+              <text x="240" y="225" textAnchor="middle" fill="#67e8f9" fontSize="11" fontWeight="bold">x₁</text>
+              <text x="240" y="250" textAnchor="middle" fill="#22d3ee" fontSize="9">C2</text>
+            </g>
+
+            {/* Clause 3 vertices: (¬x₁ ∨ E ∨ F) */}
+            <g>
+              <circle cx="300" cy="150" r="18" fill="#a855f7" fillOpacity="0.3" stroke="#a855f7" strokeWidth="2" />
+              <text x="300" y="155" textAnchor="middle" fill="#d8b4fe" fontSize="11" fontWeight="bold">¬x₁</text>
+              <text x="300" y="180" textAnchor="middle" fill="#c084fc" fontSize="9">C3</text>
+            </g>
+            <g>
+              <circle cx="340" cy="80" r="18" fill="#a855f7" fillOpacity="0.3" stroke="#a855f7" strokeWidth="2" />
+              <text x="340" y="85" textAnchor="middle" fill="#d8b4fe" fontSize="12" fontWeight="bold">E</text>
+              <text x="340" y="110" textAnchor="middle" fill="#c084fc" fontSize="9">C3</text>
+            </g>
+            <g>
+              <circle cx="380" cy="140" r="18" fill="#a855f7" fillOpacity="0.3" stroke="#a855f7" strokeWidth="2" />
+              <text x="380" y="145" textAnchor="middle" fill="#d8b4fe" fontSize="12" fontWeight="bold">F</text>
+              <text x="380" y="170" textAnchor="middle" fill="#c084fc" fontSize="9">C3</text>
+            </g>
+
+            {/* Highlight a 3-clique example: {B, D, E} */}
+            <g opacity="0.8">
+              <circle cx="100" cy="140" r="22" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeDasharray="4,2">
+                <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="200" cy="150" r="22" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeDasharray="4,2">
+                <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+              </circle>
+              <circle cx="340" cy="80" r="22" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeDasharray="4,2">
+                <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+              </circle>
+            </g>
+          </svg>
+
+          {/* Legend */}
+          <div className="mt-4 space-y-2 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-blue-500 ring-2 ring-blue-500/30"></div>
+              <span className="text-slate-400">Clause 1 (C1): <span className="font-mono text-blue-300">A ∨ B ∨ ⊤</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-cyan-500 ring-2 ring-cyan-500/30"></div>
+              <span className="text-slate-400">Clause 2 (C2): <span className="font-mono text-cyan-300">¬C ∨ D ∨ x₁</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-purple-500 ring-2 ring-purple-500/30"></div>
+              <span className="text-slate-400">Clause 3 (C3): <span className="font-mono text-purple-300">¬x₁ ∨ E ∨ F</span></span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full border-2 border-amber-400 border-dashed"></div>
+              <span className="text-amber-300 font-semibold">3-Clique Found: {'{B, D, E}'} → Formula is satisfiable!</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2 rounded bg-slate-800/50 p-2">
+              <span className="text-xs text-slate-500">⚠️</span>
+              <span className="text-slate-400">Note: x₁ and ¬x₁ are contradictory, so no edge connects them</span>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-purple-500/30 bg-purple-500/5 p-2 text-xs text-purple-200">
+            <p className="font-semibold">💡 Key Insight:</p>
+            <p className="mt-1 text-purple-300/80">
+              Edges connect vertices from different clauses that are compatible (not contradictory). 
+              Finding a k-clique (k=3) means finding one satisfying literal from each clause!
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Custom Formula Input */}
       <div className="space-y-2">

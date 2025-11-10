@@ -10,6 +10,7 @@ import ReactFlow, {
 } from 'reactflow'
 import type { Node } from 'reactflow'
 import ProblemNode, { type ProblemNodeData } from './ProblemNode'
+import CliqueGraphAnimation from './CliqueGraphAnimation'
 import { problems } from '../data/problems'
 import type { ProblemId } from '../data/problems'
 
@@ -117,6 +118,8 @@ const FlowCanvas = () => {
   const [isAnimating, setIsAnimating] = useState(false)
   const [currentAnimationStep, setCurrentAnimationStep] = useState(0)
   const [showExamplePanel, setShowExamplePanel] = useState(false)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1) // Default 1x speed
+  const [showGraphAnimation, setShowGraphAnimation] = useState(false)
 
   const initialNodes: Node<ProblemNodeData>[] = (
     Object.entries(problems) as [ProblemId, typeof problems[ProblemId]][]
@@ -177,10 +180,10 @@ const FlowCanvas = () => {
           return prev
         }
       })
-    }, 5000) // 5 seconds per step
+    }, 5000 / playbackSpeed) // Adjust interval based on playback speed
 
     return () => clearInterval(interval)
-  }, [isAnimating])
+  }, [isAnimating, playbackSpeed])
 
   // Update highlights based on current animation step
   useEffect(() => {
@@ -302,6 +305,26 @@ const FlowCanvas = () => {
           >
             ↺ Reset
           </button>
+
+          {/* Speed Control */}
+          <div className="relative">
+            <label className="sr-only">Playback Speed</label>
+            <select
+              value={playbackSpeed}
+              onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm font-medium text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-750 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+              title="Playback Speed"
+            >
+              <option value={0.25}>0.25× Speed</option>
+              <option value={0.5}>0.5× Speed</option>
+              <option value={0.75}>0.75× Speed</option>
+              <option value={1}>1× Speed</option>
+              <option value={1.25}>1.25× Speed</option>
+              <option value={1.5}>1.5× Speed</option>
+              <option value={1.75}>1.75× Speed</option>
+              <option value={2}>2× Speed</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -388,43 +411,83 @@ const FlowCanvas = () => {
               </span>
             </div>
 
-            <div className="space-y-4">
-              {/* Input */}
-              <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Input:</p>
-                <p className="mt-2 font-mono text-sm text-blue-200">{currentStep.example.input}</p>
-              </div>
+            {/* Toggle between Example and Graph Animation */}
+            <div className="mb-4 flex gap-2">
+              <button
+                onClick={() => setShowGraphAnimation(false)}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  !showGraphAnimation
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                Example
+              </button>
+              <button
+                onClick={() => setShowGraphAnimation(true)}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                  showGraphAnimation
+                    ? 'bg-cyan-500 text-white'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                Graph Animation
+              </button>
+            </div>
 
-              {/* Transformation arrow */}
-              <div className="flex items-center justify-center">
-                <div className="flex items-center gap-3 text-cyan-400">
-                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500 to-transparent"></div>
-                  <span className="text-2xl">⬇</span>
-                  <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500 to-transparent"></div>
+            {!showGraphAnimation ? (
+              <div className="space-y-4">
+                {/* Input */}
+                <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Input:</p>
+                  <p className="mt-2 font-mono text-sm text-blue-200">{currentStep.example.input}</p>
                 </div>
-              </div>
 
-              {/* Output */}
-              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Output:</p>
-                <p className="mt-2 font-mono text-sm text-emerald-200">{currentStep.example.output}</p>
-              </div>
+                {/* Transformation arrow */}
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center gap-3 text-cyan-400">
+                    <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500 to-transparent"></div>
+                    <span className="text-2xl">⬇</span>
+                    <div className="h-px flex-1 bg-linear-to-r from-transparent via-cyan-500 to-transparent"></div>
+                  </div>
+                </div>
 
-              {/* Explanation */}
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">💡</span>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
-                      What Happened:
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-amber-100">
-                      {currentStep.example.explanation}
-                    </p>
+                {/* Output */}
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Output:</p>
+                  <p className="mt-2 font-mono text-sm text-emerald-200">{currentStep.example.output}</p>
+                </div>
+
+                {/* Explanation */}
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl">💡</span>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                        What Happened:
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-amber-100">
+                        {currentStep.example.explanation}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {/* CLIQUE Graph Animation with built-in controls */}
+                <CliqueGraphAnimation
+                  exampleFormula={
+                    // Use the 3-CNF formula from step 2 for graph construction
+                    currentAnimationStep >= 2 
+                      ? '(A ∨ B ∨ ⊤) ∧ (¬C ∨ D ∨ x₁) ∧ (¬x₁ ∨ E ∨ F)'
+                      : (currentStep?.example.output || '(A ∨ B ∨ ⊤) ∧ (¬C ∨ D ∨ x₁) ∧ (¬x₁ ∨ E ∨ F)')
+                  }
+                  isAnimating={isAnimating}
+                  animationStep={currentAnimationStep}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-center rounded-2xl border border-slate-800/60 bg-slate-950/40 p-8 backdrop-blur-sm h-[500px] md:h-[600px]">
